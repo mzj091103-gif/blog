@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Runaway の 主页</title>
+    <link rel="icon" href="/assets/favicon.ico" sizes="any">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+        integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <style>
+        :root {
+            --font-fallback: 'Noto Sans SC', system-ui, sans-serif;
+            --font-family: var(--font-fallback);
+            --stripe-width: 15px;
+            --angle: 45deg;
+            --speed: 3s;
+            --direction: -1;
+            --bg-color: #fdfcff;
+            --stripe-color: #f3ebff;
+            --full-width: calc(var(--stripe-width) * 2);
+            --size-x: calc(var(--full-width) / sin(var(--angle)));
+            --size-y: calc(var(--full-width) / cos(var(--angle)));
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--bg-color);
+            background-image: repeating-linear-gradient(var(--angle), var(--stripe-color), var(--stripe-color) var(--stripe-width), var(--bg-color) var(--stripe-width), var(--bg-color) var(--full-width));
+            background-size: var(--size-x) var(--size-y);
+            animation: plaid-scroll var(--speed) linear infinite;
+        }
+
+        ::selection {
+            background-color: rgba(245, 208, 254, 0.6);
+            color: #701a75;
+            text-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
+        }
+
+        @keyframes plaid-scroll {
+            from {
+                background-position: 0 0;
+            }
+
+            to {
+                background-position: calc(var(--direction) * var(--size-x)) 0;
+            }
+        }
+
+        .title-text {
+            color: #fff;
+            text-shadow: 0 2px 10px rgba(244, 114, 182, 0.4), 0 0 20px rgba(244, 114, 182, 0.2), -1px -1px 0 rgba(244, 114, 182, 0.4), 1px -1px 0 rgba(244, 114, 182, 0.4), -1px 1px 0 rgba(244, 114, 182, 0.4), 1px 1px 0 rgba(244, 114, 182, 0.4);
+        }
+
+        .tooltip {
+            position: relative;
+            display: inline-block;
+            cursor: pointer;
+        }
+
+        .tooltip .tooltip-text {
+            visibility: hidden;
+            position: absolute;
+            width: max-content;
+            max-width: 240px;
+            background-color: rgba(30, 41, 59, 0.85);
+            backdrop-filter: blur(8px);
+            color: #fff;
+            text-align: center;
+            font-weight: 400;
+            font-size: 0.8125rem;
+            border-radius: 0.75rem;
+            padding: 6px 12px;
+            z-index: 10;
+            bottom: 130%;
+            left: 50%;
+            transform: translateX(-50%) scale(0.95);
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            pointer-events: none;
+        }
+
+        .tooltip:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+            transform: translateX(-50%) scale(1);
+        }
+
+        .toast-enter {
+            animation: toast-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        .toast-exit {
+            animation: toast-out 0.3s ease-in forwards;
+        }
+
+        @keyframes toast-in {
+            from {
+                opacity: 0;
+                transform: translateY(100%) scale(0.9);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        @keyframes toast-out {
+            from {
+                opacity: 1;
+                transform: scale(1);
+            }
+
+            to {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+        }
+    </style>
+</head>
+
+<body class="text-slate-700 antialiased overflow-x-hidden min-h-screen flex items-center justify-center py-12 sm:py-20">
+
+    <div id="app" class="container mx-auto max-w-2xl px-4 w-full"></div>
+
+    <div id="toast"
+        class="fixed bottom-6 right-6 bg-slate-800/90 backdrop-blur-md text-white px-6 py-3 rounded-2xl shadow-2xl hidden z-50 text-sm font-medium tracking-wide">
+    </div>
+
+    <script>
+        const siteData = {
+            font: "./renderer/assets/font.woff2",
+            profile: {
+                title: "Runaway の 主页",
+                avatar: "./assets/avatar.png",
+                aliases: [
+                    { label: "StarwingRunaway", tooltip: "bilibiliID: StarwingRunaway", copy: "StarwingRunaway" },
+                    { label: "/ TL_Xingyi", tooltip: "X(Twitter)的ID: TL_Xingyi", copy: "TL_Xingyi" }
+                ]
+            },
+            about: {
+                heading: "关于我",
+                headingIcon: "fa-solid fa-address-card text-purple-400",
+                traits: [
+                    { icon: "fa-solid fa-user", color: "bg-sky-400", tooltip: "89.64% 内向" },
+                    { icon: "fa-solid fa-music", color: "bg-emerald-400", tooltip: "80% kanye" },
+                    { icon: "fa-solid fa-heart", color: "bg-pink-400", tooltip: "86% 情感细腻" },
+                    { icon: "fa-solid fa-book-open", color: "bg-red-400", tooltip: "99% 马列毛主义" },
+                    { icon: "fa-solid fa-sgamepad", color: "bg-indigo-400", tooltip: "70% Minecraft" }
+                ],
+                bio: "你好～ 这里是 Runaway，也可以叫我<span class='font-semibold text-purple-400'>跑掉</span>，是一个热爱编程与游戏的普通高中生。向往理想的乌托邦，<span class='font-semibold text-pink-400'>喜欢和善良的人交朋友。</span>",
+                tags: [
+                    { text: "友LGBT", copy: "友LGBT", color: "bg-cyan-50/80 text-cyan-600 border border-cyan-100" },
+                    { text: "现代马列主义", copy: "现代马列主义", color: "bg-blue-50/80 text-blue-600 border border-blue-100" },
+                    { text: "GTX 1650", copy: "GTX 1650", color: "bg-lime-50/80 text-lime-600 border border-lime-100" },
+                    { text: "SBTI", copy: "SBTI", color: "bg-emerald-50/80 text-emerald-600 border border-emerald-100" },
+                    { text: "MTF", copy: "MTF", color: "bg-rose-50/80 text-rose-600 border border-rose-100" }
+                ]
+            },
+            portals: {
+                heading: "传送门",
+                headingIcon: "fa-solid fa-door-open text-pink-400",
+                items: [
+                    {
+                        title: "Yumeka 的小窝",
+                        desc: "似乎什么都没有, 会分享些什么呢?",
+                        url: "https://sudo.yumeka.blog/",
+                        icon: "fa-solid fa-house-chimney",
+                        bg: "bg-gradient-to-br from-indigo-50/60 to-purple-50/60 hover:from-indigo-100/60 hover:to-purple-100/60",
+                        iconColor: "text-indigo-300"
+                    },
+                    {
+                        title: "LGBTQIA+ 骄傲旗帜",
+                        desc: "一个为爱制作的小工具",
+                        url: "./flag/",
+                        icon: "fa-solid fa-rainbow",
+                        bg: "bg-gradient-to-br from-pink-50/60 to-rose-50/60 hover:from-pink-100/60 hover:to-rose-100/60",
+                        iconColor: "text-pink-300"
+                    },
+                    {
+                        title: "“😰不出来”表情包生成器",
+                        desc: "没什么用的小玩意",
+                        url: "./meme/",
+                        icon: "fa-solid fa-box",
+                        bg: "bg-gradient-to-br from-sky-50/60 to-cyan-50/60 hover:from-sky-100/60 hover:to-cyan-100/60",
+                        iconColor: "text-sky-300"
+                    },
+                    {
+                        title: "Renderer",
+                        desc: "自用的小东西",
+                        url: "./renderer/",
+                        icon: "fa-solid fa-layer-group",
+                        bg: "bg-gradient-to-br from-emerald-50/60 to-teal-50/60 hover:from-emerald-100/60 hover:to-teal-100/60",
+                        iconColor: "text-emerald-300"
+                    }
+                ]
+            },
+            contact: {
+                heading: "找到我",
+                headingIcon: "fa-solid fa-paper-plane text-sky-400",
+                links: [
+                    { icon: "fa-brands fa-github", url: "https://github.com/mzj091103-gif", hover: "hover:text-slate-800", isCopy: false },
+                    { icon: "fa-brands fa-qq", val: "2272363155", hover: "hover:text-blue-500", isCopy: true, msg: "QQ 号码" },
+                    { icon: "fa-solid fa-envelope", url: "mzj091103@gmail.com", hover: "hover:text-red-500", isCopy: false }
+                ]
+            },
+            footer: "&copy; 2025-2026 Yumeka <a href='mailto:miniyu157@163.com' class='hover:text-purple-400 transition-colors duration-300'>&ltminiyu157@163.com&gt</a>. Released under the MIT License."
+        };
+
+        const applyFont = async (val) => {
+            if (!val) return document.documentElement.style.setProperty('--font-family', 'var(--font-fallback)');
+            const isUrl = val.includes('/') || val.includes('.') || val.startsWith('http');
+            if (isUrl) {
+                const fontName = 'DynamicFont_' + Math.random().toString(36).substring(2, 8);
+                try {
+                    const fontFace = new FontFace(fontName, `url("${encodeURI(val)}")`);
+                    await fontFace.load();
+                    document.fonts.add(fontFace);
+                    document.documentElement.style.setProperty('--font-family', `"${fontName}", var(--font-fallback)`);
+                } catch {
+                    document.documentElement.style.setProperty('--font-family', val);
+                }
+            } else {
+                document.documentElement.style.setProperty('--font-family', val);
+            }
+        };
+
+        const generateHTML = (data) => {
+            const aliasesHTML = data.profile.aliases.map(alias =>
+                `<span class="tooltip" onclick="handleCopy('${alias.copy}', 'ID')">
+                    ${alias.label}
+                    <span class="tooltip-text">${alias.tooltip}</span>
+                </span>`
+            ).join('');
+
+            const traitsHTML = data.about.traits.map(trait =>
+                `<div class="tooltip">
+                    <div class="w-6 h-6 rounded-full ${trait.color} flex items-center justify-center text-white text-[10px] font-bold shadow-sm">
+                        <i class="${trait.icon}"></i>
+                    </div>
+                    <span class="tooltip-text">${trait.tooltip}</span>
+                </div>`
+            ).join('');
+
+            const tagsHTML = data.about.tags.map(tag =>
+                `<span onclick="handleCopy('${tag.copy}', '标签')" class="${tag.color} px-3.5 py-1.5 rounded-full font-medium cursor-pointer transition-transform active:scale-95 shadow-sm text-xs tracking-wide">
+                    ${tag.text}
+                </span>`
+            ).join('');
+
+            const portalsHTML = data.portals.items.map(item =>
+                `<a href="${item.url}" target="_blank" class="group block ${item.bg} p-5 rounded-2xl border border-white/80 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.03)] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-[1.03] hover:shadow-[0_8px_25px_-5px_rgba(0,0,0,0.08)] active:scale-[0.98]">
+                    <div class="flex items-start justify-between">
+                        <div>
+                            <h3 class="font-bold text-slate-700 mb-1.5 tracking-wide">${item.title}</h3>
+                            <p class="text-xs text-slate-500/90 leading-relaxed">${item.desc}</p>
+                        </div>
+                        <i class="${item.icon} ${item.iconColor} text-xl opacity-50 group-hover:opacity-100 group-hover:scale-110 transition-all duration-300"></i>
+                    </div>
+                </a>`
+            ).join('');
+
+            const contactHTML = data.contact.links.map(link =>
+                link.isCopy
+                    ? `<a onclick="handleCopy('${link.val}', '${link.msg}')" class="text-slate-400 ${link.hover} transition-colors duration-300 cursor-pointer p-2"><i class="${link.icon}"></i></a>`
+                    : `<a href="${link.url}" target="_blank" class="text-slate-400 ${link.hover} transition-colors duration-300 p-2"><i class="${link.icon}"></i></a>`
+            ).join('');
+
+            return `
+                <main class="bg-white/60 backdrop-blur-2xl p-8 sm:p-12 rounded-[2rem] shadow-[0_8px_40px_-12px_rgba(0,0,0,0.06)] border border-white/80 flex flex-col gap-10">
+                    <header class="text-center relative">
+                        <div class="relative inline-block mb-5">
+                            <img src="${data.profile.avatar}" alt="Avatar" class="w-28 h-28 sm:w-32 sm:h-32 rounded-full object-cover border-[4px] border-white shadow-xl relative z-10 transition-transform duration-500 hover:rotate-[360deg]">
+                            <div class="absolute inset-0 bg-pink-300/40 blur-2xl rounded-full scale-110 z-0"></div>
+                        </div>
+                        <div>
+                            <h1 class="title-text text-3xl sm:text-4xl font-black tracking-widest mb-3">${data.profile.title}</h1>
+                            <p class="text-slate-500/80 text-xs sm:text-sm font-medium tracking-wide flex flex-wrap justify-center gap-1.5">
+                                ${aliasesHTML}
+                            </p>
+                        </div>
+                    </header>
+
+                    <section class="space-y-5">
+                        <div class="flex items-center justify-between border-b-2 border-purple-100/60 pb-3">
+                            <h2 class="text-lg font-bold text-slate-700 flex items-center gap-2.5">
+                                <i class="${data.about.headingIcon}"></i>${data.about.heading}
+                            </h2>
+                            <div class="flex items-center gap-1.5 sm:gap-2">${traitsHTML}</div>
+                        </div>
+                        <p class="text-sm sm:text-[15px] leading-loose text-slate-600 tracking-wide">${data.about.bio}</p>
+                        <div class="flex flex-wrap gap-2.5 select-none pt-2">${tagsHTML}</div>
+                    </section>
+
+                    <section class="space-y-5">
+                        <div class="border-b-2 border-pink-100/60 pb-3">
+                            <h2 class="text-lg font-bold text-slate-700 flex items-center gap-2.5">
+                                <i class="${data.portals.headingIcon}"></i>${data.portals.heading}
+                            </h2>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">${portalsHTML}</div>
+                    </section>
+
+                    <section class="space-y-5">
+                        <div class="border-b-2 border-sky-100/60 pb-3">
+                            <h2 class="text-lg font-bold text-slate-700 flex items-center gap-2.5">
+                                <i class="${data.contact.headingIcon}"></i>${data.contact.heading}
+                            </h2>
+                        </div>
+                        <div class="flex items-center justify-center gap-6 sm:gap-8 text-2xl">${contactHTML}</div>
+                    </section>
+                </main>
+                <footer class="text-center mt-8 text-xs text-slate-500/70 font-medium tracking-wider">
+                    <p>${data.footer}</p>
+                </footer>
+            `;
+        };
+
+        applyFont(siteData.font);
+        document.getElementById('app').innerHTML = generateHTML(siteData);
+
+        const toast = document.getElementById('toast');
+        let toastTimer = null;
+        let hideTimer = null;
+
+        window.handleCopy = (text, type = '') => {
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(text).then(() => {
+                    showToast(type ? `已将 ${type} 复制到剪贴板 ✨` : '已复制到剪贴板 ✨');
+                }).catch(() => showToast('复制失败，请重试 💧'));
+            } else {
+                showToast('当前环境不支持剪贴板功能 💧');
+            }
+        };
+
+        const showToast = (msg) => {
+            clearTimeout(toastTimer);
+            clearTimeout(hideTimer);
+
+            toast.textContent = msg;
+            toast.classList.remove('hidden', 'toast-exit', 'toast-enter');
+            void toast.offsetWidth;
+            toast.classList.add('toast-enter');
+
+            toastTimer = setTimeout(() => {
+                toast.classList.remove('toast-enter');
+                toast.classList.add('toast-exit');
+
+                hideTimer = setTimeout(() => {
+                    toast.classList.add('hidden');
+                    toast.classList.remove('toast-exit');
+                }, 300);
+            }, 2500);
+        };
+    </script>
+</body>
+
+</html>
