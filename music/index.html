@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#fdfcff">
+<title>Runaway の 唱片收藏</title>
+<link rel="icon" href="../assets/favicon.ico" sizes="any">
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer">
+<style>
+:root{--bg-color:#fdfcff;--stripe-color:#f3ebff;--stripe-width:15px;--full-width:30px;--angle:45deg;--size-x:calc(var(--full-width)/sin(var(--angle)));--size-y:calc(var(--full-width)/cos(var(--angle)))}
+*{box-sizing:border-box}
+body{font-family:'Noto Sans SC',system-ui,sans-serif;background-color:var(--bg-color);background-image:repeating-linear-gradient(var(--angle),var(--stripe-color),var(--stripe-color) var(--stripe-width),var(--bg-color) var(--stripe-width),var(--bg-color) var(--full-width));background-size:var(--size-x) var(--size-y);animation:plaid-scroll 3s linear infinite}
+@keyframes plaid-scroll{from{background-position:0 0}to{background-position:calc(-1*var(--size-x)) 0}}
+::selection{background:rgba(245,208,254,.6);color:#701a75}
+.title-text{color:#fff;text-shadow:0 2px 10px rgba(244,114,182,.4),0 0 20px rgba(244,114,182,.2),-1px -1px 0 rgba(244,114,182,.4),1px 1px 0 rgba(244,114,182,.4),-1px 1px 0 rgba(244,114,182,.4),1px 1px 0 rgba(244,114,182,.4)}
+.vinyl{position:relative;border-radius:50%;background:repeating-radial-gradient(circle,#20202b 0 2px,#292936 3px 5px,#171720 6px 8px);box-shadow:0 12px 24px rgba(30,20,50,.2)}
+.vinyl:before{content:"";position:absolute;inset:35%;border-radius:50%;background:linear-gradient(135deg,#f9a8d4,#c4b5fd 55%,#93c5fd);border:4px solid #f8fafc}
+.vinyl:after{content:"";position:absolute;inset:48%;border-radius:50%;background:#fff}
+.album-card:hover .vinyl{animation:spin 4s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body class="text-slate-700 antialiased overflow-x-hidden min-h-screen py-10 sm:py-16">
+<div class="mx-auto max-w-4xl px-4">
+<main class="bg-white/65 backdrop-blur-2xl p-6 sm:p-10 rounded-[2rem] shadow-[0_8px_40px_-12px_rgba(0,0,0,0.06)] border border-white/80">
+<nav class="flex items-center justify-between mb-8">
+<a href="../" class="inline-flex items-center gap-2 text-sm font-semibold text-slate-500 hover:text-purple-500 transition-colors"><i class="fa-solid fa-arrow-left"></i><span>回到主页</span></a>
+<a id="playlist-link" href="#" target="_blank" rel="noopener noreferrer" class="hidden inline-flex items-center gap-2 rounded-full bg-rose-50 text-rose-500 border border-rose-100 px-4 py-2 text-xs font-semibold hover:bg-rose-100 transition-colors"><i class="fa-solid fa-music"></i>网易云完整歌单</a>
+</nav>
+<header class="relative overflow-hidden rounded-[1.6rem] bg-gradient-to-br from-violet-100/80 via-pink-50/80 to-sky-50/80 px-6 py-8 sm:px-10 sm:py-10 mb-10">
+<div class="absolute -right-5 -top-8 w-40 h-40 opacity-90 sm:right-10 sm:top-1/2 sm:-translate-y-1/2"><div class="vinyl w-full h-full"></div></div>
+<div class="relative z-10 max-w-xl">
+<p class="text-xs font-bold uppercase tracking-[.28em] text-purple-400 mb-3"><i class="fa-solid fa-record-vinyl mr-2"></i>MY MUSIC SHELF</p>
+<h1 class="title-text text-3xl sm:text-4xl font-black tracking-widest mb-3">唱片收藏架</h1>
+<p class="text-sm sm:text-base leading-relaxed text-slate-600/90">把喜欢的专辑与单曲，收进这面小小的唱片架。</p>
+<div class="mt-5 flex flex-wrap gap-2 text-xs font-medium text-slate-500">
+<span class="rounded-full bg-white/70 border border-white px-3 py-1.5"><i class="fa-solid fa-compact-disc text-purple-400 mr-1.5"></i><span id="album-count">0</span> 张专辑</span>
+<span class="rounded-full bg-white/70 border border-white px-3 py-1.5"><i class="fa-solid fa-headphones text-pink-400 mr-1.5"></i><span id="single-count">0</span> 首单曲</span>
+</div>
+</div>
+</header>
+<section class="space-y-5 mb-10">
+<div class="flex items-center justify-between border-b-2 border-purple-100/70 pb-3">
+<h2 class="text-lg font-bold text-slate-700 flex items-center gap-2.5"><i class="fa-solid fa-compact-disc text-purple-400"></i>专辑收藏</h2>
+<span class="text-xs tracking-wider text-slate-400">ALBUMS</span>
+</div>
+<div id="albums" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+</section>
+<section class="space-y-5">
+<div class="flex items-center justify-between border-b-2 border-pink-100/70 pb-3">
+<h2 class="text-lg font-bold text-slate-700 flex items-center gap-2.5"><i class="fa-solid fa-music text-pink-400"></i>单曲收藏</h2>
+<span class="text-xs tracking-wider text-slate-400">SINGLES</span>
+</div>
+<div id="singles" class="grid grid-cols-1 sm:grid-cols-2 gap-4"></div>
+</section>
+</main>
+<footer class="text-center mt-6 text-xs text-slate-500/70 font-medium tracking-wider"><a href="../" class="hover:text-purple-400 transition-colors">Runaway の 主页</a> <span class="mx-1">·</span> 音乐收藏</footer>
+</div>
+<script>
+// 在这里填写网易云音乐链接与封面。每项格式见下方示例注释：
+// { title: "名称", artist: "歌手", url: "网易云链接", cover: "封面图片链接" }
+// 没有封面时可留空，唱片图案会自动作为封面。
+const musicData = {
+  playlistUrl: "",
+  albums: [],
+  singles: []
+};
+
+const escapeHTML = (value) => String(value || "").replace(/[&<>"']/g, (char) => ({
+  "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+}[char]));
+
+const placeholder = (kind, icon, title, hint) =>
+  '<div class="rounded-2xl border border-dashed border-purple-200/90 bg-white/45 p-6 text-center">' +
+    '<div class="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-violet-100 to-pink-100 text-xl text-purple-400"><i class="' + icon + '"></i></div>' +
+    '<p class="font-semibold text-slate-600">' + title + '</p>' +
+    '<p class="mt-1 text-xs leading-relaxed text-slate-400">' + hint + '</p>' +
+  '</div>';
+
+const renderAlbum = (item) => {
+  const title = escapeHTML(item.title);
+  const artist = escapeHTML(item.artist);
+  const cover = item.cover ? '<img src="' + escapeHTML(item.cover) + '" alt="" class="h-full w-full object-cover">' : '<div class="vinyl h-24 w-24"></div>';
+  const linkStart = item.url ? '<a href="' + escapeHTML(item.url) + '" target="_blank" rel="noopener noreferrer" class="group block">' : '<div class="group block">';
+  const linkEnd = item.url ? '</a>' : '</div>';
+  const action = item.url ? '<span class="text-xs font-semibold text-purple-500">去网易云听 <i class="fa-solid fa-arrow-up-right-from-square ml-1"></i></span>' : '<span class="text-xs text-slate-400">网易云链接待添加</span>';
+  return linkStart +
+    '<article class="album-card h-full rounded-2xl border border-white/90 bg-gradient-to-br from-violet-50/80 to-pink-50/80 p-4 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.04)] transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">' +
+      '<div class="flex items-center gap-4"><div class="flex h-28 w-28 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-slate-100 to-violet-100 shadow-inner">' + cover + '</div>' +
+      '<div class="min-w-0"><p class="mb-1 text-[10px] font-bold tracking-[.2em] text-purple-400">ALBUM</p><h3 class="truncate font-bold text-slate-700">' + (title || "专辑名称") + '</h3><p class="mt-1 truncate text-sm text-slate-500">' + (artist || "歌手名称") + '</p><div class="mt-4">' + action + '</div></div></div>' +
+    '</article>' + linkEnd;
+};
+
+const renderSingle = (item) => {
+  const title = escapeHTML(item.title);
+  const artist = escapeHTML(item.artist);
+  const cover = item.cover ? '<img src="' + escapeHTML(item.cover) + '" alt="" class="h-full w-full object-cover">' : '<div class="vinyl h-12 w-12"></div>';
+  const linkStart = item.url ? '<a href="' + escapeHTML(item.url) + '" target="_blank" rel="noopener noreferrer" class="group flex items-center gap-4 rounded-2xl border border-white/90 bg-white/55 p-4 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.03)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-white/85 hover:shadow-md">' : '<div class="flex items-center gap-4 rounded-2xl border border-white/90 bg-white/55 p-4 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.03)]">';
+  const linkEnd = item.url ? '</a>' : '</div>';
+  const action = item.url ? '<i class="fa-solid fa-arrow-up-right-from-square text-xs text-pink-400"></i>' : '<span class="text-[10px] text-slate-400">待添加链接</span>';
+  return linkStart +
+    '<div class="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-pink-50 to-violet-100">' + cover + '</div>' +
+    '<div class="min-w-0 flex-1"><h3 class="truncate font-bold text-slate-700">' + (title || "歌曲名称") + '</h3><p class="mt-1 truncate text-sm text-slate-500">' + (artist || "歌手名称") + '</p></div>' +
+    '<div class="shrink-0">' + action + '</div>' +
+  linkEnd;
+};
+
+document.getElementById("album-count").textContent = musicData.albums.length;
+document.getElementById("single-count").textContent = musicData.singles.length;
+document.getElementById("albums").innerHTML = musicData.albums.length
+  ? musicData.albums.map(renderAlbum).join("")
+  : placeholder("album", "fa-solid fa-compact-disc", "还没有添加专辑", "把喜欢的专辑和网易云链接填进页面里的 musicData 就能展示。");
+document.getElementById("singles").innerHTML = musicData.singles.length
+  ? musicData.singles.map(renderSingle).join("")
+  : placeholder("single", "fa-solid fa-music", "还没有添加单曲", "单曲会以列表形式摆放在这里，点击后跳转到网易云音乐。");
+if (musicData.playlistUrl) {
+  const playlistLink = document.getElementById("playlist-link");
+  playlistLink.href = musicData.playlistUrl;
+  playlistLink.classList.remove("hidden");
+}
+</script>
+</body>
+</html>
