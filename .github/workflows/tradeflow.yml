@@ -1,0 +1,56 @@
+name: TradeFlow checks and deployment
+on:
+  push:
+    branches: [main]
+    paths: ['apps/inquiry-board/**', '.github/workflows/tradeflow.yml']
+  pull_request:
+    paths: ['apps/inquiry-board/**', '.github/workflows/tradeflow.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: tradeflow-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/inquiry-board
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm install --global pnpm@11.25.0
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm test
+      - run: pnpm build
+  deploy:
+    needs: verify
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request' && vars.TRADEFLOW_DEPLOY_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/inquiry-board
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+      D1_DATABASE_ID: ${{ vars.D1_DATABASE_ID }}
+      ACCESS_TEAM_DOMAIN: ${{ vars.ACCESS_TEAM_DOMAIN }}
+      ACCESS_AUD: ${{ vars.ACCESS_AUD }}
+      ACCESS_ALLOWED_EMAILS: ${{ secrets.ACCESS_ALLOWED_EMAILS }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm install --global pnpm@11.25.0
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm configure
+      - run: pnpm migrate
+      - run: pnpm deploy

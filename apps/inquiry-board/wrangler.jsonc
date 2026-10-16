@@ -1,0 +1,18 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "tradeflow-inquiry-board",
+  "main": "src/worker.mjs",
+  "compatibility_date": "2026-10-01",
+  "workers_dev": false,
+  "preview_urls": false,
+  "assets": { "directory": "./public", "binding": "ASSETS", "run_worker_first": true },
+  "routes": [{ "pattern": "test.xqzxmarxismclub.com", "custom_domain": true }],
+  "d1_databases": [{ "binding": "DB", "database_name": "tradeflow", "database_id": "00000000-0000-0000-0000-000000000000", "migrations_dir": "migrations" }],
+  "vars": {
+    "APP_ORIGIN": "https://test.xqzxmarxismclub.com",
+    "BUSINESS_TIMEZONE": "Asia/Shanghai",
+    "ACCESS_TEAM_DOMAIN": "",
+    "ACCESS_AUD": "",
+    "ACCESS_ALLOWED_EMAILS": ""
+  }
+}
